@@ -99,4 +99,22 @@ func HandleUpdateUsers(context *gin.Context) {
 	context.JSON(200, gin.H{
 		"message": "Updated successfully",
 	})
+} 
+
+func HandleDeleteUsers(context *gin.Context) {
+
+	query := `
+      DELETE FROM users WHERE id=$1;`
+
+	_, err := app.Db.Query(query, context.Param("id"))
+
+	if err != nil {
+		fmt.Println(err)
+		context.JSON(500, gin.H{
+			"message": "Something went wrong",
+		})
+		return
+	}
+
+	context.Status(204)
 }
