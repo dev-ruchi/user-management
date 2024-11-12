@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Edit, Trash } from "react-feather";
 import CreateUser from "./CreateUser";
 import UpdateUser from "./UpdateUser";
+import DeleteUser from "./DeleteUser";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -20,6 +21,11 @@ const UserList = () => {
       setUsers(response.data);
       console.log(response.data);
     });
+  };
+
+  const handleDelete = (userId) => {
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+    setDeleteUserId(null); // Close the delete confirmation dialog
   };
 
   const handleCreateClick = () => {
@@ -97,6 +103,14 @@ const UserList = () => {
         setCreateUser={setCreateUser}
         setUsers={setUsers}
       />
+
+      {deleteUserId !== null && (
+        <DeleteUser
+          userId={deleteUserId}
+          onDelete={handleDelete}
+          onClose={() => setDeleteUserId(null)}
+        />
+      )}
     </div>
   );
 };
