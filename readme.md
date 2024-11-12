@@ -10,7 +10,7 @@ Ensure you have the following installed:
 
 - Go (version 1.18 or higher)
 - Node.js (version 16 or higher)
-- PostgreSQL (or any database of your choice)
+- PostgreSQL
 - Git
 
 ## Setup
