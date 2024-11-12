@@ -15,7 +15,7 @@ func SetupRoutes() {
 
 	router.POST("/users", handlers.HandleAddUser)
 	router.GET("/users", handlers.HandleFetchUsers)
-	router.PUT("/users", handlers.HandleUpdateUsers)
+	router.PUT("/users/:id", handlers.HandleUpdateUsers)
 	router.DELETE("/users/:id", handlers.HandleDeleteUsers)
 
 
