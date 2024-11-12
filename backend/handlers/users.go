@@ -93,4 +93,10 @@ func HandleFetchUsers(context *gin.Context) {
 
 	context.JSON(200, users)
 
+} 
+
+func HandleUpdateUsers(context *gin.Context) {
+	context.JSON(200, gin.H{
+		"message": "Updated successfully",
+	})
 }
