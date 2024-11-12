@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { Edit, Trash } from "react-feather";
 import CreateUser from "./CreateUser";
+import UpdateUser from "./UpdateUser";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -81,6 +82,16 @@ const UserList = () => {
           </tbody>
         </table>
       </div>
+
+      {updateUserIndex !== -1 && (
+        <UpdateUser
+          users={users}
+          setUsers={setUsers}
+          updateUserIndex={updateUserIndex}
+          setupdateUserIndex={setupdateUserIndex}
+        />
+      )}
+
       <CreateUser
         createUser={createUser}
         setCreateUser={setCreateUser}
