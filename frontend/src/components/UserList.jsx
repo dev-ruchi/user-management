@@ -21,61 +21,72 @@ const UserList = () => {
     });
   };
 
-  
-
   const handleCreateClick = () => {
     setCreateUser(true); // Open form when "Create" button is clicked
   };
 
   return (
     <div className="p-6">
-      <h2 className="text-3xl">Users</h2>
-      <button
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-3xl font-bold text-primary">Users</h2>
+        <button
           onClick={handleCreateClick}
-          className="bg-blue-500 text-white px-6 py-4 rounded"
+          className="btn btn-primary px-6 py-2"
         >
           Create
         </button>
-      <table>
-        <thead>
-          <tr className="uppercase text-sm leading-normal">
-            <th className="py-3 px-3 text-left sticky left-0 z-10">
-              Name
-            </th>
-            <th className="py-3 px-3 text-left">Email</th>
-            <th className="py-3 px-3 text-left">BirthDate</th>
-            <th className="py-3 px-3 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="text-gray-600 text-sm font-light">
-          {users.map((user, index) => (
-            <tr
-              key={`${user.id}-${index}`}
-              className={`border-b border-gray-200 hover:bg-gray-100`}
-            >
-              <td className="py-3 px-3 text-left whitespace-nowrap sticky left-0 z-10">
-                <Link
-                  to={`/users/${user.id}`}
-                  className="text-blue-500 hover:underline"
-                >
-                  {user.name}
-                </Link>
-              </td>
-              <td className="py-3 px-3 text-left">{user.email}</td>
-              <td className="py-3 px-3 text-left">{user.date_of_birth}</td>
-              
+      </div>
+      <div className="overflow-x-auto">
+        <table className="table w-full">
+          <thead>
+            <tr className="bg-neutral text-neutral-content">
+              <th className="py-3 px-4 text-left sticky left-0 z-10">Name</th>
+              <th className="py-3 px-4 text-left">Email</th>
+              <th className="py-3 px-4 text-left">Birth Date</th>
+              <th className="py-3 px-4 text-left">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((user, index) => (
+              <tr
+                key={`${user.id}-${index}`}
+                className="hover:bg-gray-100 even:bg-base-200 odd:bg-base-100"
+              >
+                <td className="py-3 px-4 text-left sticky left-0 z-10">
+                  <Link
+                    to={`/users/${user.id}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    {user.name}
+                  </Link>
+                </td>
+                <td className="py-3 px-4 text-left">{user.email}</td>
+                <td className="py-3 px-4 text-left">{user.date_of_birth}</td>
+                <td className="py-3 px-4 text-left">
+                  <button
+                    onClick={() => setupdateUserIndex(index)}
+                    title="Edit"
+                  >
+                    <Edit className="mr-2" />
+                  </button>
+                  <button
+                    onClick={() => setDeleteUserId(user.id)}
+                    title="Delete"
+                  >
+                    <Trash className="mr-2" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <CreateUser
         createUser={createUser}
         setCreateUser={setCreateUser}
         setUsers={setUsers}
       />
     </div>
-
-    
   );
 };
 
