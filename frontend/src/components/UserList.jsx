@@ -1,19 +1,10 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Edit, Trash } from "react-feather";
 import CreateUser from "./CreateUser";
 import UpdateUser from "./UpdateUser";
 import DeleteUser from "./DeleteUser";
-
-const toDDMMYYYY = (dateStr) => {
-  const date = new Date(dateStr);
-  const formatted = `${date.getDate().toString().padStart(2, "0")}-${(
-    date.getMonth() + 1
-  )
-    .toString()
-    .padStart(2, "0")}-${date.getFullYear()}`;
-  return formatted;
-};
+import { dateStrtoDDMMYYYY } from "../../helpers/date";
+import { backend } from "../../backend";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -26,11 +17,11 @@ const UserList = () => {
   }, []);
 
   const fetchUsers = () => {
-    axios.get(`http://localhost:8080/users`).then(({ data }) => {
+    backend.get(`http://localhost:8080/users`).then(({ data }) => {
       if (!Array.isArray(data)) return;
       setUsers(
         data.map((user) => {
-          user.date_of_birth = toDDMMYYYY(user.date_of_birth);
+          user.date_of_birth = dateStrtoDDMMYYYY(user.date_of_birth);
           return user;
         })
       );

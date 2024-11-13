@@ -1,15 +1,11 @@
 import React from "react";
-import axios from "axios";
 import * as Yup from "yup";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import { FaTimes } from "react-icons/fa";
 
 import { InputMask } from "@react-input/mask";
-
-const toMMDDYYYY = (dateStr) => {
-  const [day, month, year] = dateStr.split("-");
-  return `${month}-${day}-${year}`;
-};
+import { ddMMYYYtoMMDDYYYY } from "../../helpers/date";
+import { backend } from "../../backend";
 
 const UpdateUser = ({
   users,
@@ -33,9 +29,9 @@ const UpdateUser = ({
   const handleSubmit = (values, { resetForm }) => {
     const payload = { ...values };
 
-    payload.date_of_birth = toMMDDYYYY(payload.date_of_birth);
+    payload.date_of_birth = ddMMYYYtoMMDDYYYY(payload.date_of_birth);
 
-    axios
+    backend
       .put(`http://localhost:8080/users/${user.id}`, payload)
       .then(() => {
         alert("User updated successfully!");

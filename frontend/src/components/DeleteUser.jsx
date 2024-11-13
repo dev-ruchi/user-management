@@ -1,10 +1,10 @@
-import axios from "axios";
 import React from "react";
 import { FaTimes } from "react-icons/fa";
+import { backend } from "../../backend";
 
 const DeleteUser = ({ userId, onDelete, onClose }) => {
   const handleDelete = () => {
-    axios
+    backend
       .delete(`http://localhost:8080/users/${userId}`)
       .then((response) => {
         if (!response.ok) {

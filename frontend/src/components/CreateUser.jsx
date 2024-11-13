@@ -1,8 +1,10 @@
-import React from 'react';
-import axios from 'axios';
+import React from "react";
 import * as Yup from "yup";
 import { Formik, Field, Form, ErrorMessage } from "formik";
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes } from "react-icons/fa";
+import { backend } from "../../backend";
+import { InputMask } from "@react-input/mask";
+import { ddMMYYYtoMMDDYYYY } from "../../helpers/date";
 
 const CreateUser = ({ createUser, setCreateUser, setUsers }) => {
   // Yup validation schema
@@ -13,14 +15,15 @@ const CreateUser = ({ createUser, setCreateUser, setUsers }) => {
     email: Yup.string()
       .email("Invalid email address")
       .required("Email is required"),
-    date_of_birth: Yup.date()
-      .required("Birth date is required"),
+    date_of_birth: Yup.string().required("Birth date is required"),
   });
 
   const handleSubmit = (values, { resetForm }) => {
     const payload = { ...values };
 
-    axios
+    payload.date_of_birth = ddMMYYYtoMMDDYYYY(payload.date_of_birth);
+
+    backend
       .post("http://localhost:8080/users", payload)
       .then((response) => {
         alert("User created successfully!");
@@ -39,7 +42,7 @@ const CreateUser = ({ createUser, setCreateUser, setUsers }) => {
 
   return (
     <>
-{createUser && (
+      {createUser && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
           <div className="w-full max-w-lg p-6 rounded-lg shadow-lg relative overflow-auto bg-base-100">
             <button
@@ -48,7 +51,9 @@ const CreateUser = ({ createUser, setCreateUser, setUsers }) => {
             >
               <FaTimes />
             </button>
-            <h2 className="text-3xl font-bold mb-4 text-center text-primary">Create New User</h2>
+            <h2 className="text-3xl font-bold mb-4 text-center text-primary">
+              Create New User
+            </h2>
             <Formik
               initialValues={{
                 name: "",
@@ -97,14 +102,23 @@ const CreateUser = ({ createUser, setCreateUser, setUsers }) => {
 
                     <div className="form-control w-full">
                       <label className="label">
-                        <span className="label-text text-secondary">Birth Date</span>
+                        <span className="label-text text-secondary">
+                          Birth Date
+                        </span>
                       </label>
-                      <Field
-                        type="date"
-                        name="date_of_birth"
-                        className="input input-bordered w-full"
-                        onChange={handleChange}
-                      />
+                      <Field name="date_of_birth">
+                        {({
+                          field, // { name, value, onChange, onBlur }
+                        }) => (
+                          <InputMask
+                            className="input input-bordered w-full"
+                            mask="dd-mm-yyyy"
+                            replacement={{ d: /\d/, m: /\d/, y: /\d/ }}
+                            placeholder="DD-MM-YYYY"
+                            {...field}
+                          />
+                        )}
+                      </Field>
                       <ErrorMessage
                         name="date_of_birth"
                         component="span"
@@ -125,7 +139,6 @@ const CreateUser = ({ createUser, setCreateUser, setUsers }) => {
           </div>
         </div>
       )}
-
     </>
   );
 };
