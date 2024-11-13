@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-
 	"github.com/dev-ruchi/user-management/backend/app"
 	"github.com/dev-ruchi/user-management/backend/models"
 
@@ -13,7 +12,6 @@ import (
 
 func HandleAddUser(context *gin.Context) {
 	var user models.User
-
 
 	err := context.BindJSON(&user)
 
@@ -25,7 +23,7 @@ func HandleAddUser(context *gin.Context) {
 		return
 	}
 
-		query := `
+	query := `
         INSERT INTO users (name, email, date_of_birth)
         VALUES ($1, $2, $3)
         RETURNING id, name, email, date_of_birth`
@@ -48,7 +46,6 @@ func HandleAddUser(context *gin.Context) {
 	context.JSON(201, user)
 
 }
-
 
 func HandleFetchUsers(context *gin.Context) {
 	rows, err := app.Db.Query("SELECT * FROM users")
@@ -93,13 +90,48 @@ func HandleFetchUsers(context *gin.Context) {
 
 	context.JSON(200, users)
 
-} 
+}
 
 func HandleUpdateUsers(context *gin.Context) {
-	context.JSON(200, gin.H{
-		"message": "Updated successfully",
-	})
-} 
+	// Get the user ID from URL parameters
+	id := context.Param("id")
+
+	var user models.User
+
+	// Bind JSON data to the user model
+	if err := context.BindJSON(&user); err != nil {
+		context.JSON(400, gin.H{
+			"message": "Bad request",
+		})
+		return
+	}
+
+	// Update query
+	query := `
+        UPDATE users 
+        SET name=$1, email=$2, date_of_birth=$3
+        WHERE id=$4
+        RETURNING id, name, email, date_of_birth`
+
+	// Execute the query and update the database
+	err := app.Db.QueryRow(query, user.Name, user.Email, user.DateOfBirth, id).Scan(
+		&user.Id,
+		&user.Name,
+		&user.Email,
+		&user.DateOfBirth,
+	)
+
+	if err != nil {
+		fmt.Println(err)
+		context.JSON(500, gin.H{
+			"message": "Something went wrong",
+		})
+		return
+	}
+
+	// Respond with the updated user details
+	context.JSON(200, user)
+}
 
 func HandleDeleteUsers(context *gin.Context) {
 
