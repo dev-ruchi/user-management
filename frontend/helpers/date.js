@@ -13,7 +13,6 @@ export const dateStrtoDDMMYYYY = (dateStr) => {
 };
 
 export const ddMMYYYtoMMDDYYYY = (dateStr) => {
-  console.log(dateStr);
   const [day, month, year] = dateStr.split("-");
   return `${month}-${day}-${year}`;
 };

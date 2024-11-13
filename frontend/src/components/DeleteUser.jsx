@@ -6,13 +6,11 @@ const DeleteUser = ({ userId, onDelete, onClose }) => {
   const handleDelete = () => {
     backend
       .delete(`http://localhost:8080/users/${userId}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Could not delete the user");
-        }
+      .then(() => {
         onDelete(userId); // Notify parent to update the list
       })
       .catch((err) => {
+        alert("Something went wrong");
         console.error("Error deleting user:", err);
       });
   };

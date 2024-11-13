@@ -34,7 +34,6 @@ const UpdateUser = ({
     backend
       .put(`http://localhost:8080/users/${user.id}`, payload)
       .then(() => {
-      
         setUsers((prevUsers) =>
           prevUsers.map((u) => (u.id === user.id ? { ...u, ...values } : u))
         );
@@ -42,8 +41,8 @@ const UpdateUser = ({
         handleClose();
       })
       .catch((error) => {
-        console.log(error);
-        alert("User can't update!");
+        console.error(error);
+        alert("Something went wrong.");
       });
   };
 

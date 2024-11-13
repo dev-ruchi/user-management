@@ -5,6 +5,7 @@ import { FaTimes } from "react-icons/fa";
 import { backend } from "../../backend";
 import { InputMask } from "@react-input/mask";
 import { ddMMYYYtoMMDDYYYY } from "../../helpers/date";
+import dayjs from "dayjs";
 
 const CreateUser = ({ createUser, setCreateUser, setUsers }) => {
   // Yup validation schema
@@ -25,13 +26,14 @@ const CreateUser = ({ createUser, setCreateUser, setUsers }) => {
 
     backend
       .post("http://localhost:8080/users", payload)
-      .then((response) => {
-        alert("User created successfully!");
-        setUsers((prevUsers) => [...prevUsers, response.data]);
+      .then(({ data: user }) => {
+        user.date_of_birth = dayjs.utc(user.date_of_birth).format("DD-MM-YYYY");
+        setUsers((prevUsers) => [...prevUsers, user]);
         resetForm();
         handleClose();
       })
       .catch((error) => {
+        alert("Something went wrong");
         console.log(error);
       });
   };

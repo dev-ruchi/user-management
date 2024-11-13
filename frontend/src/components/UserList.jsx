@@ -3,7 +3,6 @@ import { Edit, Trash } from "react-feather";
 import CreateUser from "./CreateUser";
 import UpdateUser from "./UpdateUser";
 import DeleteUser from "./DeleteUser";
-import { dateStrtoDDMMYYYY } from "../../helpers/date";
 import { backend } from "../../backend";
 import dayjs from "dayjs";
 import ThemeSwitcher from "./ThemeSwitcher";
