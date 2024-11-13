@@ -3,7 +3,7 @@ import { FaTimes } from 'react-icons/fa';
 
 const DeleteUser = ({ userId, onDelete, onClose }) => {
   const handleDelete = () => {
-    fetch(`https://jsonplaceholder.typicode.com/users/${userId}`, {
+    fetch(`http://localhost:8080/users/${userId}`, {
       method: "DELETE",
     })
       .then((response) => {
