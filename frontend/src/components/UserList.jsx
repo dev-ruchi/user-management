@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
 import { Edit, Trash } from "react-feather";
 import CreateUser from "./CreateUser";
 import UpdateUser from "./UpdateUser";
 import DeleteUser from "./DeleteUser";
+
+const toDDMMYYYY = (dateStr) => {
+  const date = new Date(dateStr);
+  const formatted = `${date.getDate().toString().padStart(2, "0")}-${(
+    date.getMonth() + 1
+  )
+    .toString()
+    .padStart(2, "0")}-${date.getFullYear()}`;
+  return formatted;
+};
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -17,9 +26,14 @@ const UserList = () => {
   }, []);
 
   const fetchUsers = () => {
-    axios.get(`http://localhost:8080/users`).then((response) => {
-      setUsers(response.data);
-      console.log(response.data);
+    axios.get(`http://localhost:8080/users`).then(({ data }) => {
+      if (!Array.isArray(data)) return;
+      setUsers(
+        data.map((user) => {
+          user.date_of_birth = toDDMMYYYY(user.date_of_birth);
+          return user;
+        })
+      );
     });
   };
 
@@ -57,7 +71,7 @@ const UserList = () => {
             {users.map((user, index) => (
               <tr
                 key={`${user.id}-${index}`}
-                className="hover:bg-gray-100 even:bg-base-200 odd:bg-base-100"
+                className="hover:bg-gray-700 even:bg-base-200 odd:bg-base-100"
               >
                 <td className="py-3 px-4 text-left sticky left-0 z-10">
                   {user.name}

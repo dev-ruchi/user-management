@@ -1,11 +1,11 @@
+import axios from "axios";
 import React from "react";
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes } from "react-icons/fa";
 
 const DeleteUser = ({ userId, onDelete, onClose }) => {
   const handleDelete = () => {
-    fetch(`http://localhost:8080/users/${userId}`, {
-      method: "DELETE",
-    })
+    axios
+      .delete(`http://localhost:8080/users/${userId}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Could not delete the user");
@@ -26,8 +26,12 @@ const DeleteUser = ({ userId, onDelete, onClose }) => {
         >
           <FaTimes />
         </button>
-        <h2 className="text-3xl font-bold mb-4 text-center text-primary">Delete User</h2>
-        <p className="text-center mb-4">Are you sure you want to delete this user?</p>
+        <h2 className="text-3xl font-bold mb-4 text-center text-primary">
+          Delete User
+        </h2>
+        <p className="text-center mb-4">
+          Are you sure you want to delete this user?
+        </p>
         <div className="flex justify-center gap-4">
           <button
             onClick={handleDelete}

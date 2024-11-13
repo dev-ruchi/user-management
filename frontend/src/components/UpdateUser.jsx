@@ -1,10 +1,17 @@
-import React from 'react';
-import axios from 'axios';
+import React from "react";
+import axios from "axios";
 import * as Yup from "yup";
 import { Formik, Field, Form, ErrorMessage } from "formik";
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes } from "react-icons/fa";
 
-const UpdateUser = ({ users, updateUserIndex, setupdateUserIndex, setUsers }) => {
+import { InputMask } from "@react-input/mask";
+
+const UpdateUser = ({
+  users,
+  updateUserIndex,
+  setupdateUserIndex,
+  setUsers,
+}) => {
   const user = users[updateUserIndex];
 
   // Yup validation schema
@@ -15,8 +22,7 @@ const UpdateUser = ({ users, updateUserIndex, setupdateUserIndex, setUsers }) =>
     email: Yup.string()
       .email("Invalid email address")
       .required("Email is required"),
-    date_of_birth: Yup.date()
-      .required("Birth date is required"),
+    date_of_birth: Yup.string().required("Birth date is required"),
   });
 
   const handleSubmit = (values, { resetForm }) => {
@@ -24,7 +30,7 @@ const UpdateUser = ({ users, updateUserIndex, setupdateUserIndex, setUsers }) =>
 
     axios
       .put(`http://localhost:8080/users/${user.id}`, payload)
-      .then((response) => {
+      .then(() => {
         alert("User updated successfully!");
         setUsers((prevUsers) =>
           prevUsers.map((u) => (u.id === user.id ? { ...u, ...values } : u))
@@ -52,7 +58,9 @@ const UpdateUser = ({ users, updateUserIndex, setupdateUserIndex, setUsers }) =>
             >
               <FaTimes />
             </button>
-            <h2 className="text-3xl font-bold mb-4 text-center text-primary">Update User</h2>
+            <h2 className="text-3xl font-bold mb-4 text-center text-primary">
+              Update User
+            </h2>
             <Formik
               initialValues={{
                 name: user.name,
@@ -101,14 +109,24 @@ const UpdateUser = ({ users, updateUserIndex, setupdateUserIndex, setUsers }) =>
 
                     <div className="form-control w-full">
                       <label className="label">
-                        <span className="label-text text-secondary">Birth Date</span>
+                        <span className="label-text text-secondary">
+                          Birth Date
+                        </span>
                       </label>
-                      <Field
-                        type="date"
-                        name="date_of_birth"
-                        className="input input-bordered w-full"
-                        onChange={handleChange}
-                      />
+
+                      <Field name="date_of_birth">
+                        {({
+                          field, // { name, value, onChange, onBlur }
+                        }) => (
+                          <InputMask
+                            className="input input-bordered w-full"
+                            mask="dd-mm-yyyy"
+                            replacement={{ d: /\d/, m: /\d/, y: /\d/ }}
+                            placeholder="DD-MM-YYYY"
+                            {...field}
+                          />
+                        )}
+                      </Field>
                       <ErrorMessage
                         name="date_of_birth"
                         component="span"
