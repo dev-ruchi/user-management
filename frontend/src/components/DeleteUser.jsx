@@ -35,13 +35,13 @@ const DeleteUser = ({ userId, onDelete, onClose }) => {
         <div className="flex justify-center gap-4">
           <button
             onClick={handleDelete}
-            className="btn btn-danger text-white px-4 py-2 rounded"
+            className="btn btn-danger px-4 py-2 rounded"
           >
             Delete
           </button>
           <button
             onClick={onClose}
-            className="btn btn-secondary text-white px-4 py-2 rounded"
+            className="btn btn-secondary px-4 py-2 rounded"
           >
             Cancel
           </button>

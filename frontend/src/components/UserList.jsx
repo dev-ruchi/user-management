@@ -6,6 +6,7 @@ import DeleteUser from "./DeleteUser";
 import { dateStrtoDDMMYYYY } from "../../helpers/date";
 import { backend } from "../../backend";
 import dayjs from "dayjs";
+import ThemeSwitcher from "./ThemeSwitcher";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -42,6 +43,7 @@ const UserList = () => {
 
   return (
     <div className="p-6">
+      <ThemeSwitcher />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-3xl font-bold text-primary">Users</h2>
         <button
@@ -52,9 +54,9 @@ const UserList = () => {
         </button>
       </div>
       <div className="overflow-x-auto">
-        <table className="table w-full">
+        <table className="table table-xs">
           <thead>
-            <tr className="bg-neutral text-neutral-content">
+            <tr>
               <th className="py-3 px-4 text-left sticky left-0 z-10">Name</th>
               <th className="py-3 px-4 text-left">Email</th>
               <th className="py-3 px-4 text-left">Birth Date</th>
@@ -65,7 +67,7 @@ const UserList = () => {
             {users.map((user, index) => (
               <tr
                 key={`${user.id}-${index}`}
-                className="hover:bg-gray-700 even:bg-base-200 odd:bg-base-100"
+                className="even:bg-base-200 odd:bg-base-100"
               >
                 <td className="py-3 px-4 text-left sticky left-0 z-10">
                   {user.name}
