@@ -60,12 +60,7 @@ const UserList = () => {
                 className="hover:bg-gray-100 even:bg-base-200 odd:bg-base-100"
               >
                 <td className="py-3 px-4 text-left sticky left-0 z-10">
-                  <Link
-                    to={`/users/${user.id}`}
-                    className="text-blue-500 hover:underline"
-                  >
-                    {user.name}
-                  </Link>
+                  {user.name}
                 </td>
                 <td className="py-3 px-4 text-left">{user.email}</td>
                 <td className="py-3 px-4 text-left">{user.date_of_birth}</td>
