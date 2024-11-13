@@ -6,6 +6,11 @@ import { FaTimes } from "react-icons/fa";
 
 import { InputMask } from "@react-input/mask";
 
+const toMMDDYYYY = (dateStr) => {
+  const [day, month, year] = dateStr.split("-");
+  return `${month}-${day}-${year}`;
+};
+
 const UpdateUser = ({
   users,
   updateUserIndex,
@@ -27,6 +32,8 @@ const UpdateUser = ({
 
   const handleSubmit = (values, { resetForm }) => {
     const payload = { ...values };
+
+    payload.date_of_birth = toMMDDYYYY(payload.date_of_birth);
 
     axios
       .put(`http://localhost:8080/users/${user.id}`, payload)
