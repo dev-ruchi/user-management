@@ -5,6 +5,7 @@ import UpdateUser from "./UpdateUser";
 import DeleteUser from "./DeleteUser";
 import { dateStrtoDDMMYYYY } from "../../helpers/date";
 import { backend } from "../../backend";
+import dayjs from "dayjs";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -21,7 +22,9 @@ const UserList = () => {
       if (!Array.isArray(data)) return;
       setUsers(
         data.map((user) => {
-          user.date_of_birth = dateStrtoDDMMYYYY(user.date_of_birth);
+          user.date_of_birth = dayjs
+            .utc(user.date_of_birth)
+            .format("DD-MM-YYYY");
           return user;
         })
       );
