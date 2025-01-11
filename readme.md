@@ -12,7 +12,7 @@ Ensure you have the following installed:
 - Node.js (version 16 or higher)
 - PostgreSQL
 - Git
-
+ 
 ## Setup
 
 ### Backend Setup

@@ -16,7 +16,7 @@ func main() {
 
 	app.SetupDatabase()
 
-	api.SetupRoutes()
+	api.NewRouter()
 
 	defer app.Db.Close()
 }

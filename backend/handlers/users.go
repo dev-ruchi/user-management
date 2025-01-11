@@ -7,20 +7,19 @@ import (
 	"github.com/dev-ruchi/user-management/backend/app"
 	"github.com/dev-ruchi/user-management/backend/models"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	
 )
 
-func HandleAddUser(context *gin.Context) {
+
+func HandleAddUser(c *fiber.Ctx) error {
 	var user models.User
 
-	err := context.BindJSON(&user)
-
-	if err != nil {
+	if err := c.BodyParser(&user); err != nil {
 		fmt.Println(err)
-		context.JSON(400, gin.H{
+		return c.Status(400).JSON(fiber.Map{
 			"message": "Bad request",
 		})
-		return
 	}
 
 	query := `
@@ -28,7 +27,7 @@ func HandleAddUser(context *gin.Context) {
         VALUES ($1, $2, $3)
         RETURNING id, name, email, date_of_birth`
 
-	err = app.Db.QueryRow(query, user.Name, user.Email, user.DateOfBirth).Scan(
+	err := app.Db.QueryRow(query, user.Name, user.Email, user.DateOfBirth).Scan(
 		&user.Id,
 		&user.Name,
 		&user.Email,
@@ -37,27 +36,24 @@ func HandleAddUser(context *gin.Context) {
 
 	if err != nil {
 		fmt.Println(err)
-		context.JSON(500, gin.H{
+		return c.Status(500).JSON(fiber.Map{
 			"message": "Something went wrong",
 		})
-		return
 	}
 
-	context.JSON(201, user)
+	return c.Status(201).JSON(user)
 
 }
 
-func HandleFetchUsers(context *gin.Context) {
+func HandleFetchUsers(c *fiber.Ctx) error {
 	rows, err := app.Db.Query("SELECT * FROM users")
 
 	if err != nil {
-
-		log.Fatal(err)
-
-		context.JSON(500, gin.H{
-			"message": "Something went wrong",
-		})
-	}
+        fmt.Println(err)
+        return c.Status(500).JSON(fiber.Map{
+            "message": "Something went wrong",
+        })
+    }
 
 	defer rows.Close()
 
@@ -71,7 +67,7 @@ func HandleFetchUsers(context *gin.Context) {
 
 			log.Fatal(err)
 
-			context.JSON(500, gin.H{
+			return c.Status(500).JSON(fiber.Map{
 				"message": "Something went wrong",
 			})
 		}
@@ -83,28 +79,26 @@ func HandleFetchUsers(context *gin.Context) {
 
 		log.Fatal(err)
 
-		context.JSON(500, gin.H{
-			"message": "Something went wrong",
-		})
+		return c.Status(500).JSON(fiber.Map{
+            "message": "Something went wrong",
+        })
 	}
 
-	context.JSON(200, users)
+	 return c.Status(200).JSON(users)
 
 }
 
-func HandleUpdateUsers(context *gin.Context) {
+func HandleUpdateUsers(c *fiber.Ctx) error {
 	// Get the user ID from URL parameters
-	id := context.Param("id")
+	id := c.Params("id")
 
 	var user models.User
 
-	// Bind JSON data to the user model
-	if err := context.BindJSON(&user); err != nil {
-		context.JSON(400, gin.H{
-			"message": "Bad request",
-		})
-		return
-	}
+	if err := c.BodyParser(&user); err != nil {
+        return c.Status(400).JSON(fiber.Map{
+            "message": "Bad request",
+        })
+    }
 
 	// Update query
 	query := `
@@ -122,31 +116,44 @@ func HandleUpdateUsers(context *gin.Context) {
 	)
 
 	if err != nil {
-		fmt.Println(err)
-		context.JSON(500, gin.H{
-			"message": "Something went wrong",
-		})
-		return
-	}
+        fmt.Println(err)
+        return c.Status(500).JSON(fiber.Map{
+            "message": "Something went wrong",
+        })
+    }
 
 	// Respond with the updated user details
-	context.JSON(200, user)
+	return c.Status(200).JSON(user)
 }
 
-func HandleDeleteUsers(context *gin.Context) {
+func HandleDeleteUsers(c *fiber.Ctx) error {
 
 	query := `
       DELETE FROM users WHERE id=$1;`
 
-	_, err := app.Db.Query(query, context.Param("id"))
+	  result, err := app.Db.Exec(query, c.Params("id"))
+	  if err != nil {
+		  fmt.Println(err)
+		  return c.Status(500).JSON(fiber.Map{
+			  "message": "Something went wrong",
+		  })
+	  }
+  
+	  // Check if any rows were affected
+	  rowsAffected, err := result.RowsAffected()
+	  if err != nil {
+		  fmt.Println(err)
+		  return c.Status(500).JSON(fiber.Map{
+			  "message": "Failed to get affected rows",
+		  })
+	  }
+  
+	  if rowsAffected == 0 {
+		  return c.Status(404).JSON(fiber.Map{
+			  "message": "User not found",
+		  })
+	  }
+  
 
-	if err != nil {
-		fmt.Println(err)
-		context.JSON(500, gin.H{
-			"message": "Something went wrong",
-		})
-		return
-	}
-
-	context.Status(204)
+	return c.Status(204).Send(nil)
 }
