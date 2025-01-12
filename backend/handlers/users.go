@@ -2,20 +2,85 @@ package handlers
 
 import (
 	"fmt"
-	"log"
+	"os"
 
 	"github.com/dev-ruchi/user-management/backend/app"
 	"github.com/dev-ruchi/user-management/backend/models"
 
 	"github.com/gofiber/fiber/v2"
-	
+	jwt "github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func HandleLogin(c *fiber.Ctx) error {
+
+	var loginRequest LoginRequest
+
+	if err := c.BodyParser(&loginRequest); err != nil {
+		fmt.Println(err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Bad requset",
+		})
+	}
+
+	var user models.User
+
+	query := `
+        SELECT id, name, email, password
+        FROM users
+        WHERE email = $1`
+
+	// Query the database to find the user by username
+	row := app.Db.QueryRow(query, loginRequest.Email)
+
+	if row.Err() != nil {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"message": "Invalid email or password",
+		})
+	}
+
+	row.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
+
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginRequest.Password))
+
+	if err != nil {
+
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Invalid email or password",
+		})
+	}
+
+	tokenStr, err := generateJWT(user.Id)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Something went wrong",
+		})
+	}
+
+	// If the password is correct, return a success response
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Login successful",
+		"token":   tokenStr,
+		"user": fiber.Map{
+			"id":       user.Id,
+			"email":    user.Email,
+			"password": user.Password,
+		},
+	})
+
+}
 
 func HandleAddUser(c *fiber.Ctx) error {
 	var user models.User
 
 	if err := c.BodyParser(&user); err != nil {
+		fmt.Printf("Body parsing error: %v\n", err)
 		fmt.Println(err)
 		return c.Status(400).JSON(fiber.Map{
 			"message": "Bad request",
@@ -23,137 +88,66 @@ func HandleAddUser(c *fiber.Ctx) error {
 	}
 
 	query := `
-        INSERT INTO users (name, email, date_of_birth)
+        INSERT INTO users (name, email, password)
         VALUES ($1, $2, $3)
-        RETURNING id, name, email, date_of_birth`
+        RETURNING id, name, email, password`
 
-	err := app.Db.QueryRow(query, user.Name, user.Email, user.DateOfBirth).Scan(
-		&user.Id,
-		&user.Name,
-		&user.Email,
-		&user.DateOfBirth,
-	)
+	password, err := (bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost))
 
 	if err != nil {
-		fmt.Println(err)
-		return c.Status(500).JSON(fiber.Map{
-			"message": "Something went wrong",
+		fmt.Printf("Password hasing error: %v\n", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Something went wrong while hashing the password",
 		})
 	}
 
-	return c.Status(201).JSON(user)
+	user.Password = string(password)
 
-}
-
-func HandleFetchUsers(c *fiber.Ctx) error {
-	rows, err := app.Db.Query("SELECT * FROM users")
-
-	if err != nil {
-        fmt.Println(err)
-        return c.Status(500).JSON(fiber.Map{
-            "message": "Something went wrong",
-        })
-    }
-
-	defer rows.Close()
-
-	var users []models.User
-
-	for rows.Next() {
-
-		var user models.User
-
-		if err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.DateOfBirth); err != nil {
-
-			log.Fatal(err)
-
-			return c.Status(500).JSON(fiber.Map{
-				"message": "Something went wrong",
-			})
-		}
-
-		users = append(users, user)
-	}
-
-	if err = rows.Err(); err != nil {
-
-		log.Fatal(err)
-
-		return c.Status(500).JSON(fiber.Map{
-            "message": "Something went wrong",
-        })
-	}
-
-	 return c.Status(200).JSON(users)
-
-}
-
-func HandleUpdateUsers(c *fiber.Ctx) error {
-	// Get the user ID from URL parameters
-	id := c.Params("id")
-
-	var user models.User
-
-	if err := c.BodyParser(&user); err != nil {
-        return c.Status(400).JSON(fiber.Map{
-            "message": "Bad request",
-        })
-    }
-
-	// Update query
-	query := `
-        UPDATE users 
-        SET name=$1, email=$2, date_of_birth=$3
-        WHERE id=$4
-        RETURNING id, name, email, date_of_birth`
-
-	// Execute the query and update the database
-	err := app.Db.QueryRow(query, user.Name, user.Email, user.DateOfBirth, id).Scan(
+	err = app.Db.QueryRow(query, user.Name, user.Email, user.Password).Scan(
 		&user.Id,
 		&user.Name,
 		&user.Email,
-		&user.DateOfBirth,
+		&user.Password,
 	)
 
 	if err != nil {
-        fmt.Println(err)
-        return c.Status(500).JSON(fiber.Map{
-            "message": "Something went wrong",
-        })
-    }
+		fmt.Printf("Query error: %v\n", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Something went wrong",
+		})
+	}
+	tokenStr, err := generateJWT(user.Id)
 
-	// Respond with the updated user details
-	return c.Status(200).JSON(user)
+	if err != nil {
+		fmt.Printf("JWT generation error: %v\n", err) 
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Something went wrong",
+		})
+	}
+
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "Signup successful",
+		"token":   tokenStr,
+		"user": fiber.Map{
+			"id":    user.Id,
+			"name":  user.Name,
+			"email": user.Email,
+			"password": user.Password,
+		},
+	})
+
 }
 
-func HandleDeleteUsers(c *fiber.Ctx) error {
+func generateJWT(userId int) (string, error) {
+	claims := &jwt.MapClaims{
+		"expiresAt": 15000,
+		"userId":    userId,
+	}
 
-	query := `
-      DELETE FROM users WHERE id=$1;`
+	secret := os.Getenv("JWT_SECRET")
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	  result, err := app.Db.Exec(query, c.Params("id"))
-	  if err != nil {
-		  fmt.Println(err)
-		  return c.Status(500).JSON(fiber.Map{
-			  "message": "Something went wrong",
-		  })
-	  }
-  
-	  // Check if any rows were affected
-	  rowsAffected, err := result.RowsAffected()
-	  if err != nil {
-		  fmt.Println(err)
-		  return c.Status(500).JSON(fiber.Map{
-			  "message": "Failed to get affected rows",
-		  })
-	  }
-  
-	  if rowsAffected == 0 {
-		  return c.Status(404).JSON(fiber.Map{
-			  "message": "User not found",
-		  })
-	  }
-  
-
-	return c.Status(204).Send(nil)
+	tokenStr, err := token.SignedString([]byte(secret))
+	return tokenStr, err
 }

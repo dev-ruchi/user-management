@@ -6,11 +6,10 @@ import (
 	"github.com/dev-ruchi/user-management/backend/handlers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	//"github.com/gin-gonic/gin"
 )
 
 func NewRouter() {
-	//router := gin.Default()
+	
 
 	// Create a new Fiber app
 	app := fiber.New()
@@ -22,26 +21,15 @@ func NewRouter() {
 		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
 	}))
 
-	//router.MaxMultipartMemory = 8 << 20 // 8 MiB
-
-	//router.Use(corsMiddleware())
-
 	// Define routes
-	app.Post("/users", func(c *fiber.Ctx) error {
+	app.Post("/signup", func(c *fiber.Ctx) error {
 		return handlers.HandleAddUser(c)
 	})
-	app.Get("/users", func(c *fiber.Ctx) error {
-		return handlers.HandleFetchUsers(c)
-	})
-	app.Put("/users/:id", func(c *fiber.Ctx) error {
-		return handlers.HandleUpdateUsers(c)
-	})
-	app.Delete("/users/:id", func(c *fiber.Ctx) error {
-		return handlers.HandleDeleteUsers(c)
+	app.Post("/login", func(c *fiber.Ctx) error {
+		return handlers.HandleLogin(c)
 	})
 	err := app.Listen(":8080")
 	if err != nil {
 		log.Fatal("Error starting server: ", err)
 	}
 }
-

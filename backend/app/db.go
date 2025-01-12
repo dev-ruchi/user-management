@@ -39,7 +39,7 @@ func createUsersTable() {
 			id SERIAL PRIMARY KEY,
 			name TEXT,
 	        email TEXT,
-			date_of_birth DATE NOT NULL
+			password TEXT
 		)
 	`)
 

@@ -7,7 +7,11 @@ require (
 	github.com/lib/pq v1.10.9
 )
 
-require github.com/gofiber/fiber/v2 v2.52.6
+require (
+	github.com/gofiber/fiber/v2 v2.52.6
+	github.com/golang-jwt/jwt/v5 v5.2.1
+	golang.org/x/crypto v0.32.0
+)
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
@@ -23,5 +27,5 @@ require (
 
 require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
 )
