@@ -8,7 +8,6 @@ This project is a backend application for managing users.
 Ensure you have the following installed:
 
 - Go (version 1.18 or higher)
-- Node.js (version 16 or higher)
 - PostgreSQL
 - Git
  
