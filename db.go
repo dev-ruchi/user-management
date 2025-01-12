@@ -36,11 +36,13 @@ func NewDatabase() (*sql.DB, error) {
 func createUsersTable(db *sql.DB) error {
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
-			id SERIAL PRIMARY KEY,
-			name TEXT,
-	        email TEXT,
-			password TEXT
-		)
+		id SERIAL PRIMARY KEY,
+		name TEXT NOT NULL,
+		email TEXT NOT NULL UNIQUE,
+		password TEXT NOT NULL
+	);
+
+		CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
 	`)
 
 	return err
