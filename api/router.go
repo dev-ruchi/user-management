@@ -32,7 +32,7 @@ func (r *Router) SetupRoutes() {
 
 	// Define routes
 	app.Post("/signup", func(c *fiber.Ctx) error {
-		return handlers.HandleAddUser(c, r.db)
+		return handlers.HandleSignup(c, r.db)
 	})
 	app.Post("/login", func(c *fiber.Ctx) error {
 		return handlers.HandleLogin(c, r.db)

@@ -6,26 +6,35 @@ import (
 	"os"
 
 	"github.com/dev-ruchi/user-management/backend/models"
-
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	jwt "github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
+}
+
+var validate *validator.Validate
+
+func init() {
+	validate = validator.New()
 }
 
 func HandleLogin(c *fiber.Ctx, db *sql.DB) error {
-
 	var loginRequest LoginRequest
 
 	if err := c.BodyParser(&loginRequest); err != nil {
 		fmt.Println(err)
 		return c.Status(400).JSON(fiber.Map{
-			"message": "Bad requset",
+			"message": "Bad request",
 		})
+	}
+
+	if err := validate.Struct(loginRequest); err != nil {
+		return sendValidationErrors(c, err)
 	}
 
 	var user models.User
@@ -35,7 +44,6 @@ func HandleLogin(c *fiber.Ctx, db *sql.DB) error {
         FROM users
         WHERE email = $1`
 
-	// Query the database to find the user by username
 	row := db.QueryRow(query, loginRequest.Email)
 
 	if row.Err() != nil {
@@ -47,67 +55,62 @@ func HandleLogin(c *fiber.Ctx, db *sql.DB) error {
 	row.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
 
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginRequest.Password))
-
 	if err != nil {
-
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Invalid email or password",
 		})
 	}
 
 	tokenStr, err := generateJWT(user.Id)
-
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Something went wrong",
 		})
 	}
 
-	// If the password is correct, return a success response
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Login successful",
 		"token":   tokenStr,
 		"user": fiber.Map{
 			"id":       user.Id,
 			"email":    user.Email,
-			"password": user.Password,
 		},
 	})
-
 }
 
-func HandleAddUser(c *fiber.Ctx, db *sql.DB) error {
+func HandleSignup(c *fiber.Ctx, db *sql.DB) error {
 	var user models.User
 
 	if err := c.BodyParser(&user); err != nil {
-		fmt.Printf("Body parsing error: %v\n", err)
 		fmt.Println(err)
 		return c.Status(400).JSON(fiber.Map{
 			"message": "Bad request",
 		})
 	}
 
-	query := `
-        INSERT INTO users (name, email, password)
-        VALUES ($1, $2, $3)
-        RETURNING id, name, email, password`
+	if err := validate.Struct(user); err != nil {
+		return sendValidationErrors(c, err)
+	}
 
-	password, err := (bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost))
-
+	password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		fmt.Printf("Password hasing error: %v\n", err)
+		fmt.Printf("Password hashing error: %v\n", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Something went wrong while hashing the password",
+			"error": "Something went wrong",
 		})
 	}
 
 	user.Password = string(password)
 
+	query := `
+        INSERT INTO users (name, email, password)
+        VALUES ($1, $2, $3)
+        RETURNING id, name, email`
+
 	err = db.QueryRow(query, user.Name, user.Email, user.Password).Scan(
 		&user.Id,
 		&user.Name,
 		&user.Email,
-		&user.Password,
 	)
 
 	if err != nil {
@@ -116,6 +119,7 @@ func HandleAddUser(c *fiber.Ctx, db *sql.DB) error {
 			"error": "Something went wrong",
 		})
 	}
+
 	tokenStr, err := generateJWT(user.Id)
 
 	if err != nil {
@@ -132,7 +136,6 @@ func HandleAddUser(c *fiber.Ctx, db *sql.DB) error {
 			"id":       user.Id,
 			"name":     user.Name,
 			"email":    user.Email,
-			"password": user.Password,
 		},
 	})
 
@@ -149,4 +152,13 @@ func generateJWT(userId int) (string, error) {
 
 	tokenStr, err := token.SignedString([]byte(secret))
 	return tokenStr, err
+}
+
+func sendValidationErrors(c *fiber.Ctx, err error) error {
+	errs := err.(validator.ValidationErrors)
+	errorMessages := make(map[string]string)
+	for _, e := range errs {
+		errorMessages[e.Field()] = fmt.Sprintf("Field '%s' failed on the '%s' tag", e.Field(), e.Tag())
+	}
+	return c.Status(fiber.StatusBadRequest).JSON(errorMessages)
 }
