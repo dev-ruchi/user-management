@@ -1,17 +1,14 @@
-package app
+package main
 
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 
 	_ "github.com/lib/pq"
 )
 
-var Db *sql.DB
-
-func SetupDatabase() {
+func NewDatabase() (*sql.DB, error) {
 	connectionString := fmt.Sprintf(
 		"user=%s dbname=%s password=%s host=%s port=%s sslmode=disable",
 		os.Getenv("DB_USER"),
@@ -24,17 +21,20 @@ func SetupDatabase() {
 	db, err := sql.Open("postgres", connectionString)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	Db = db
+	err = createUsersTable(db)
 
-	createUsersTable()
-	
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
 
-func createUsersTable() {
-	_, err := Db.Exec(`
+func createUsersTable(db *sql.DB) error {
+	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
 			id SERIAL PRIMARY KEY,
 			name TEXT,
@@ -43,10 +43,5 @@ func createUsersTable() {
 		)
 	`)
 
-	if err != nil {
-		fmt.Println(err)
-	}
+	return err
 }
-
- 
-

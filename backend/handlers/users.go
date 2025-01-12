@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 
-	"github.com/dev-ruchi/user-management/backend/app"
 	"github.com/dev-ruchi/user-management/backend/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,7 +17,7 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func HandleLogin(c *fiber.Ctx) error {
+func HandleLogin(c *fiber.Ctx, db *sql.DB) error {
 
 	var loginRequest LoginRequest
 
@@ -36,7 +36,7 @@ func HandleLogin(c *fiber.Ctx) error {
         WHERE email = $1`
 
 	// Query the database to find the user by username
-	row := app.Db.QueryRow(query, loginRequest.Email)
+	row := db.QueryRow(query, loginRequest.Email)
 
 	if row.Err() != nil {
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
@@ -76,7 +76,7 @@ func HandleLogin(c *fiber.Ctx) error {
 
 }
 
-func HandleAddUser(c *fiber.Ctx) error {
+func HandleAddUser(c *fiber.Ctx, db *sql.DB) error {
 	var user models.User
 
 	if err := c.BodyParser(&user); err != nil {
@@ -103,7 +103,7 @@ func HandleAddUser(c *fiber.Ctx) error {
 
 	user.Password = string(password)
 
-	err = app.Db.QueryRow(query, user.Name, user.Email, user.Password).Scan(
+	err = db.QueryRow(query, user.Name, user.Email, user.Password).Scan(
 		&user.Id,
 		&user.Name,
 		&user.Email,
@@ -119,20 +119,19 @@ func HandleAddUser(c *fiber.Ctx) error {
 	tokenStr, err := generateJWT(user.Id)
 
 	if err != nil {
-		fmt.Printf("JWT generation error: %v\n", err) 
+		fmt.Printf("JWT generation error: %v\n", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Something went wrong",
 		})
 	}
 
-
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "Signup successful",
 		"token":   tokenStr,
 		"user": fiber.Map{
-			"id":    user.Id,
-			"name":  user.Name,
-			"email": user.Email,
+			"id":       user.Id,
+			"name":     user.Name,
+			"email":    user.Email,
 			"password": user.Password,
 		},
 	})

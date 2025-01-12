@@ -1,8 +1,9 @@
 package main
 
 import (
+	"log"
+
 	"github.com/dev-ruchi/user-management/backend/api"
-	"github.com/dev-ruchi/user-management/backend/app"
 
 	"github.com/joho/godotenv"
 )
@@ -14,9 +15,14 @@ func main() {
 		panic("Error loading .env file")
 	}
 
-	app.SetupDatabase()
+	db, err := NewDatabase()
 
-	api.NewRouter()
+	if err != nil {
+		log.Fatalf("Failed to conenct to the database: %v", err)
+	}
 
-	defer app.Db.Close()
+	router := api.NewRouter(db)
+	router.SetupRoutes()
+
+	defer db.Close()
 }

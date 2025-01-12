@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"log"
 
 	"github.com/dev-ruchi/user-management/backend/handlers"
@@ -8,9 +9,17 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
-func NewRouter() {
-	
+type Router struct {
+	db *sql.DB
+}
 
+func NewRouter(db *sql.DB) *Router {
+	return &Router{
+		db,
+	}
+}
+
+func (r *Router) SetupRoutes() {
 	// Create a new Fiber app
 	app := fiber.New()
 
@@ -23,10 +32,10 @@ func NewRouter() {
 
 	// Define routes
 	app.Post("/signup", func(c *fiber.Ctx) error {
-		return handlers.HandleAddUser(c)
+		return handlers.HandleAddUser(c, r.db)
 	})
 	app.Post("/login", func(c *fiber.Ctx) error {
-		return handlers.HandleLogin(c)
+		return handlers.HandleLogin(c, r.db)
 	})
 	err := app.Listen(":8080")
 	if err != nil {
