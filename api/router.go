@@ -3,10 +3,11 @@ package api
 import (
 	"database/sql"
 	"log"
-
+"os"
 	"github.com/dev-ruchi/user-management/backend/handlers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	 "github.com/joho/godotenv"
 )
 
 type Router struct {
@@ -37,8 +38,16 @@ func (r *Router) SetupRoutes() {
 	app.Post("/login", func(c *fiber.Ctx) error {
 		return handlers.HandleLogin(c, r.db)
 	})
-	err := app.Listen(":8080")
-	if err != nil {
-		log.Fatal("Error starting server: ", err)
-	}
+	
+	err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+	port := os.Getenv("PORT")
+
+    err = app.Listen(port)
+    if err != nil {
+        log.Fatal("Error starting server: ", err)
+    }
 }
